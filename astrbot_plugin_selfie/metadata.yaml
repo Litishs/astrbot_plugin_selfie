@@ -2,9 +2,9 @@ name: astrbot_plugin_selfie
 display_name: 🤳 Selfie - 自拍生成
 desc: "根据角色的三视图设定和对话上下文氛围，调用 AI 绘图 API 生成角色在当前场景下的自拍照。支持 /selfie 指令和自然语言触发（如「我想看看你」）。"
 short_desc: "让 bot 根据聊天氛围生成自拍照"
-author: "YourName"
+author: "Litishs"
 version: "1.0.0"
-repo: "https://github.com/YourName/astrbot_plugin_selfie"
+repo: "https://github.com/Litishs/astrbot_plugin_selfie"
 support_platforms:
   - aiocqhttp
   - telegram
