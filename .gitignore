@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+astrbot_plugin_selfie/data/temp/
+
+# Documentation downloads
+AstrBot 插件开发指南 🌠 _ AstrBot.html
+AstrBot 插件开发指南 🌠 _ AstrBot_files/

@@ -1,0 +1,69 @@
+{
+  "llm_provider_id": {
+    "description": "用于生成绘图提示词的模型",
+    "type": "string",
+    "hint": "选择在 AstrBot 主配置中添加的对话模型，用于分析对话上下文并生成绘图 prompt。",
+    "_special": "select_provider",
+    "default": ""
+  },
+  "image_provider_id": {
+    "description": "用于生成图片的模型",
+    "type": "string",
+    "hint": "选择在 AstrBot 主配置中添加的图片生成模型（如 SiliconFlow 等 OpenAI 兼容模式的提供商）。插件会自动读取该模型的 API Key、地址和模型名来生成图片。",
+    "_special": "select_provider",
+    "default": ""
+  },
+  "image_api_mode": {
+    "description": "图片生成模式",
+    "type": "string",
+    "default": "openai",
+    "options": ["openai", "custom"],
+    "hint": "openai: 标准 OpenAI 格式（/v1/images/generations），适用于 SiliconFlow、智谱 CogView 等；custom: 自定义 API 格式，适用于通义万相(qwen-image)等非标准接口。"
+  },
+  "image_api_url": {
+    "description": "图片 API 地址（仅 custom 模式）",
+    "type": "string",
+    "default": "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+    "hint": "仅 custom 模式有效。默认已填好通义万相 qwen-image 的多模态生成接口地址。"
+  },
+  "custom_request_template": {
+    "description": "自定义 API 请求体模板（JSON）",
+    "type": "text",
+    "hint": "可用占位符: {{prompt}} = 绘图提示词, {{reference_base64}} = 三视图参考图 base64。放 data/reference.png",
+    "default": "{\"model\": \"qwen-image-2.0-pro\", \"input\": {\"messages\": [{\"role\": \"user\", \"content\": [{\"image\": \"{{reference_base64}}\"}, {\"text\": \"{{prompt}}\"}]}]}, \"parameters\": {\"size\": \"1024*1024\", \"n\": 1}}",
+    "editor_mode": true,
+    "editor_language": "json"
+  },
+  "custom_response_path": {
+    "description": "自定 API 响应提取路径",
+    "type": "string",
+    "default": "output.choices[0].message.content[0].image",
+    "hint": "从 API 返回的 JSON 中提取图片 URL/base64 的路径。通义万相: output.choices[0].message.content[0].image"
+  },
+  "image_size": {
+    "description": "图片尺寸",
+    "type": "string",
+    "default": "1024x1024",
+    "options": ["1024x1024", "512x512", "768x768", "1024x1792", "1792x1024"],
+    "hint": "仅 openai 模式有效"
+  },
+  "output_style": {
+    "description": "输出风格",
+    "type": "string",
+    "default": "auto",
+    "options": ["auto", "anime", "realistic", "semi-realistic"],
+    "hint": "auto: 跟随参考图风格（推荐）；anime: 二次元；realistic: 写实；semi-realistic: 半写实"
+  },
+  "use_persona": {
+    "description": "参考角色人格卡",
+    "type": "bool",
+    "default": true,
+    "hint": "开启后，LLM 会读取 AstrBot 中配置的角色人格卡来理解角色性格，生成更贴合角色设定的自拍描述。"
+  },
+  "trigger_keywords": {
+    "type": "text",
+    "description": "触发关键词，每行一个",
+    "hint": "当用户消息包含这些关键词时会自动触发自拍生成",
+    "default": "我想看看你\n让我看看你\n发张自拍\n自拍一张\n看看你的样子\n你现在什么样子\n来张自拍"
+  }
+}
