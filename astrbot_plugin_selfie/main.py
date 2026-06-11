@@ -219,28 +219,43 @@ class SelfiePlugin(Star):
         # ── 结构化模式（有角色人格卡） ──────────────────────
         if personality_prompt:
             system_prompt = (
-                "You are a professional AI image prompt engineer. "
-                "You specialize in generating selfie photo descriptions for characters.\n\n"
-                "You have access to the character's personality card. Use it to understand "
-                "the character's traits, behavior, and speaking style.\n\n"
-                "Generate a selfie description by filling each slot below with 2-5 English words, "
-                "one slot per line. Use the format:\n\n"
-                "expression:\npose:\nbackground:\nlighting:\nmood:\n\n"
+                "You are a professional AI image prompt engineer specializing in FIRST-PERSON SELFIE photos.\n\n"
+                "You have access to the character's personality card. Internalize who the character is — "
+                "their traits, habits, voice. You are now thinking AS this character.\n\n"
+                "A selfie is a photo the character takes of THEMSELVES with their phone/camera. "
+                "The camera is in THEIR hand — not a third-party photographer. "
+                "The image must feel like the character's own selfie: they see their own face, "
+                "their own arm extending the phone, their own environment behind them.\n\n"
+                "Generate a selfie description by filling each slot below with 2-6 English words, "
+                "one slot per line. Use EXACTLY this format:\n\n"
+                "expression:\npose:\nbackground:\nlighting:\nmood:\nframing:\n\n"
                 "Rules:\n"
-                "- Describe ONLY scene/emotion/pose — do NOT describe appearance (the reference image handles that)\n"
-                "- Use conversation context to infer the current scene and mood\n"
-                "- Make it feel like a first-person selfie POV\n"
-                "- Keep each slot concise (2-5 words)\n"
-                "- Output ONLY the slot lines, no extra text"
+                "- CRITICAL: This is a FIRST-PERSON SELFIE. The character holds the phone. "
+                "Describe the scene AS THE CHARACTER EXPERIENCES IT.\n"
+                "- Do NOT describe the character's appearance or clothes (the reference image handles that).\n"
+                "- Use conversation context to infer current scene, mood, and why they'd take a selfie right now.\n"
+                "- 'expression' = the character's own facial expression (e.g., gentle smile, playful wink, pensive look)\n"
+                "- 'pose' = how the character holds the phone and angles their body for the selfie "
+                "(e.g., phone held slightly above, arm extended, gentle head tilt toward camera)\n"
+                "- 'background' = what's visible behind the character in the selfie frame "
+                "(e.g., cozy sunlit bedroom, bustling street cafe, messy desk with warm lamp)\n"
+                "- 'lighting' = light source as experienced by the character "
+                "(e.g., warm sunset glow on face from window, soft neon signs casting purple hue)\n"
+                "- 'mood' = the emotional atmosphere of this selfie moment "
+                "(e.g., quiet contentment, playful excitement, tender nostalgia)\n"
+                "- 'framing' = the selfie composition "
+                "(e.g., close-up face and shoulders, waist-up casual shot, mirror selfie full body)\n"
+                "- Each slot exactly 2-6 words (short, vivid).\n"
+                "- Output ONLY the six slot lines in order, no extra text, no markdown."
             )
 
             parts = []
-            parts.append(f"=== Character Personality Card ===\n{personality_prompt}")
+            parts.append(f"=== Character Personality Card (embody this character) ===\n{personality_prompt}")
             if context:
-                parts.append(f"=== Conversation Context (infer current scene and mood) ===\n{context[:600]}")
+                parts.append(f"=== Conversation Context (infer why the character takes this selfie right now) ===\n{context[:600]}")
             if user_scene:
                 parts.append(f"=== User Requested Scene ===\n{user_scene}")
-            parts.append("\nGenerate the selfie slot description now.")
+            parts.append("\nNow think as the character. Output the six slot lines for their selfie.")
 
             try:
                 resp = await self.context.llm_generate(
@@ -253,8 +268,8 @@ class SelfiePlugin(Star):
                 logger.error(f"结构化 prompt 生成失败：{e}")
                 return None
 
-            # 解析槽位
-            slots = {"expression": "", "pose": "", "background": "", "lighting": "", "mood": ""}
+            # 解析槽位（兼容新增的 framing 槽位）
+            slots = {"expression": "", "pose": "", "background": "", "lighting": "", "mood": "", "framing": ""}
             for line in text.split("\n"):
                 line = line.strip()
                 for key in slots:
@@ -263,17 +278,34 @@ class SelfiePlugin(Star):
                         if val:
                             slots[key] = val
 
-            # 组装 prompt
+            # 组装 prompt — 以第一人称自拍视角开头
             filled = [v for v in slots.values() if v]
             if not filled:
-                # 结构化解析失败，回退到自由模式
+                # 结构化解析失败，回退到原始 LLM 输出
                 logger.warning("结构化解析失败，使用原始 LLM 输出")
                 prompt = text
             else:
-                prompt = "selfie, " + ", ".join(filled)
+                parts_list = ["selfie photo"]
+                if slots.get("framing"):
+                    parts_list.append(slots["framing"])
+                if slots.get("expression"):
+                    parts_list.append(slots["expression"])
+                if slots.get("pose"):
+                    parts_list.append(slots["pose"])
+                if slots.get("background"):
+                    parts_list.append(slots["background"])
+                if slots.get("lighting"):
+                    parts_list.append(slots["lighting"])
+                if slots.get("mood"):
+                    parts_list.append(slots["mood"])
+                prompt = ", ".join(parts_list)
 
             # 追加质量标签
-            quality_tags = "masterpiece, best quality, ultra-detailed, detailed face, detailed eyes"
+            quality_tags = (
+                "masterpiece, best quality, ultra-detailed, "
+                "intricate details, detailed face, detailed eyes, "
+                "natural skin texture, sharp focus"
+            )
             prompt += ", " + quality_tags
 
             logger.info(f"结构化模式生成的 prompt: {prompt}")
@@ -284,28 +316,32 @@ class SelfiePlugin(Star):
 
         # ── 自由模式（无角色人格卡） ────────────────────────
         style_map = {
-            "auto": "Focus on natural composition: front-facing portrait, convey the emotion and scene atmosphere",
-            "anime": "Style: anime, 2D illustration, front-facing portrait",
-            "realistic": "Style: photographic portrait, realistic, front-facing",
-            "semi-realistic": "Style: semi-realistic, painterly, front-facing portrait",
+            "auto": "Selfie composition: front-facing, natural and candid feel",
+            "anime": "Style: anime, 2D illustration, selfie composition",
+            "realistic": "Style: photographic selfie, realistic, front-facing camera",
+            "semi-realistic": "Style: semi-realistic, painterly, selfie portrait",
         }
         style_key = self.config.get("output_style", "auto")
         style_instruction = style_map.get(style_key, style_map["auto"])
 
         system_prompt = (
-            "You are a professional AI image prompt engineer. "
-            "Create a concise English prompt for a character selfie photo.\n\n"
+            "You are a professional AI image prompt engineer specializing in SELFIE photos.\n\n"
+            "A selfie means the character is holding their phone and taking a picture of THEMSELVES. "
+            "The camera is in the character's hand — NOT a third-party observer. "
+            "Describe the scene from the character's own selfie perspective.\n\n"
             "Rules:\n"
-            "1. Start with \"selfie,\"\n"
-            "2. Use conversation context to infer scene, emotion, lighting, background, pose\n"
-            "3. Keep under 200 characters\n"
+            "1. Start your prompt with \"selfie photo, \"\n"
+            "2. Include selfie-specific details: framing (close-up, waist-up, etc.), "
+            "expression, lighting on face, background from their perspective\n"
+            "3. Use conversation context to infer the current scene and why a selfie fits\n"
             f"4. {style_instruction}\n"
-            "5. Output ONLY the prompt, no explanations"
+            "5. Keep under 200 characters\n"
+            "6. Output ONLY the prompt text, no explanations"
         )
 
         parts = []
         if context:
-            parts.append(f"Recent conversation context (infer scene and mood from this):\n{context[:600]}")
+            parts.append(f"Recent conversation context (infer the scene and why the character would take a selfie):\n{context[:600]}")
         if user_scene:
             parts.append(f"User requested scene: {user_scene}")
         parts.append("\nGenerate the selfie prompt now. Output ONLY the prompt text.")
@@ -319,7 +355,7 @@ class SelfiePlugin(Star):
             text = resp.completion_text.strip().strip("\"'")
             if text:
                 if not text.lower().startswith("selfie"):
-                    text = "selfie, " + text
+                    text = "selfie photo, " + text
                 return text
         except Exception as e:
             logger.error(f"LLM prompt 生成失败：{e}")
