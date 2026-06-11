@@ -10,6 +10,7 @@
 - **🔌 多模型支持** — 兼容 OpenAI 标准格式（SiliconFlow、智谱 CogView 等）和自定义 API（通义万相等）。
 - **🔗 AstrBot 深度集成** — 直接读取 AstrBot Provider 系统的 API Key 和模型配置，无需额外填写密钥。
 - **🌐 多平台** — 支持 aiocqhttp、Telegram、QQ 官方等平台。
+- **🎭 第一人称自拍沉浸感** — 通过强化 prompt 工程，LLM 会以角色的第一人称视角生成自拍描述（而非第三人称旁观者视角），让成片更像是角色自己在举手机自拍。
 
 ## 📋 目录
 
