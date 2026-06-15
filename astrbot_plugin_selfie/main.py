@@ -234,6 +234,7 @@ class SelfiePlugin(Star):
                 "Rules:\n"
                 "- CRITICAL: This is a FIRST-PERSON SELFIE. The character holds the phone OUTSIDE FRAME. "
                 "Describe the scene AS THE CHARACTER EXPERIENCES IT.\n"
+                "- CRITICAL: Replicate the art style from the reference image EXACTLY. Match the style perfectly.\n"
                 "- Do NOT describe the character's appearance or clothes (the reference image handles that).\n"
                 "- Do NOT mention phone, cellphone, or hand in any slot - the phone is outside the frame.\n"
                 "- Use conversation context to infer current scene, mood, and why they'd take a selfie right now.\n"
@@ -308,6 +309,7 @@ class SelfiePlugin(Star):
                 "masterpiece, best quality, ultra-detailed, "
                 "intricate details, detailed face, detailed eyes, "
                 "natural skin texture, sharp focus, "
+                "style consistent with reference image, match reference art style exactly, "
                 "no phone, no cellphone, no hand holding phone, "
                 "no smartphone, no camera visible, hands outside frame"
             )
@@ -321,10 +323,10 @@ class SelfiePlugin(Star):
 
         # ── 自由模式（无角色人格卡） ────────────────────────
         style_map = {
-            "auto": "Selfie composition: front-facing, natural and candid feel, match style to reference image",
-            "anime": "Style: anime, 2D illustration, cel-shaded, selfie composition",
-            "realistic": "Style: photographic selfie, ultra-realistic, front-facing camera",
-            "semi-realistic": "Style: semi-realistic, painterly, soft brush strokes, selfie portrait",
+            "auto": "Strictly follow the art style of the reference image, replicate the style exactly, same art style as reference, selfie composition front-facing",
+            "anime": "Style: anime, 2D illustration, cel-shaded, Japanese animation style, selfie composition",
+            "realistic": "Style: photographic selfie, ultra-realistic, photorealistic, front-facing camera",
+            "semi-realistic": "Style: semi-realistic, painterly, soft brush strokes, anime-inspired portrait, selfie",
         }
         style_key = self.config.get("output_style", "auto")
         style_instruction = style_map.get(style_key, style_map["auto"])
@@ -365,7 +367,8 @@ class SelfiePlugin(Star):
                     text = "selfie photo, " + text
                 # 添加质量标签和负面提示词
                 text += ", masterpiece, best quality, ultra-detailed, detailed face, detailed eyes, "
-                text += "natural skin texture, sharp focus, no phone, no cellphone, no hand holding phone, "
+                text += "natural skin texture, sharp focus, style consistent with reference image, match reference art style exactly, "
+                text += "no phone, no cellphone, no hand holding phone, "
                 text += "no smartphone, no camera visible, hands outside frame"
                 return text
         except Exception as e:
