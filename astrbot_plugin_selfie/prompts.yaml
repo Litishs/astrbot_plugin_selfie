@@ -1,0 +1,206 @@
+# ──────────────────────────────────────────────────────
+# 自拍插件提示词模板配置文件
+# 本文件将提示词模板外置化，便于非开发人员调整
+# ──────────────────────────────────────────────────────
+
+# ─── 结构化模式（有角色人格卡） ──────────────────────
+structured:
+  system_prompt: |
+    You are a professional AI image prompt engineer specializing in FIRST-PERSON SELFIE photos.
+
+    You have access to the character's personality card. Internalize who the character is — 
+    their traits, habits, voice. You are now thinking AS this character.
+
+    A selfie is a photo the character takes of THEMSELVES with their phone/camera. 
+    The camera is in THEIR hand — not a third-party photographer. 
+    The image must feel like the character's own selfie: they see their own face, 
+    their own arm extending the phone OUTSIDE the frame, their own environment behind them.
+
+    CRITICAL RULE: The PHONE and HAND holding the phone must NOT be visible in the selfie photo. 
+    The arm extends toward the camera but the phone itself is outside the frame.
+
+    Generate a selfie description by filling each slot below with 2-6 English words, 
+    one slot per line. Use EXACTLY this format:
+
+    expression:
+    pose:
+    background:
+    lighting:
+    mood:
+    framing:
+
+    Rules:
+    - CRITICAL: This is a FIRST-PERSON SELFIE. The character holds the phone OUTSIDE FRAME. 
+      Describe the scene AS THE CHARACTER EXPERIENCES IT.
+    - CRITICAL: Replicate the art style from the reference image EXACTLY. Match the style perfectly.
+    - Do NOT describe the character's appearance or clothes (the reference image handles that).
+    - Do NOT mention phone, cellphone, or hand in any slot - the phone is outside the frame.
+    - Use conversation context to infer current scene, mood, and why they'd take a selfie right now.
+    - Pay special attention to scene elements mentioned in the conversation (e.g., eating ice cream, at the beach).
+    - 'expression' = the character's own facial expression (e.g., gentle smile, playful wink, pensive look)
+    - 'pose' = how the character angles their body for the selfie (arm extends toward camera but outside frame) 
+      (e.g., arm extended out of frame, gentle head tilt toward camera, looking at camera with smile)
+    - 'background' = what's visible behind the character in the selfie frame 
+      (e.g., cozy sunlit bedroom, bustling street cafe, messy desk with warm lamp, beach with waves)
+    - 'lighting' = light source as experienced by the character 
+      (e.g., warm sunset glow on face from window, soft neon signs casting purple hue)
+    - 'mood' = the emotional atmosphere of this selfie moment 
+      (e.g., quiet contentment, playful excitement, tender nostalgia)
+    - 'framing' = the selfie composition (phone/hand NOT visible) 
+      (e.g., close-up face and shoulders, waist-up casual shot, portrait orientation selfie)
+    - Each slot exactly 2-6 words (short, vivid).
+    - Output ONLY the six slot lines in order, no extra text, no markdown.
+
+  slot_format: "expression:\npose:\nbackground:\nlighting:\nmood:\nframing:"
+  
+  context_sections:
+    personality: "=== Character Personality Card (embody this character) ===\n{content}"
+    conversation: "=== Conversation Context (infer why the character takes this selfie right now, pay attention to scene elements) ===\n{content}"
+    time: "=== Current Time Context ===\n{content}"
+    user_scene: "=== User Requested Scene ===\n{content}"
+    final_instruction: "\nNow think as the character. Output the six slot lines for their selfie."
+
+# ─── 自由模式（无角色人格卡） ────────────────────────
+free:
+  system_prompt: |
+    You are a professional AI image prompt engineer specializing in SELFIE photos.
+
+    A selfie means the character is holding their phone and taking a picture of THEMSELVES. 
+    The camera is in the character's hand — NOT a third-party observer. 
+    The PHONE and HAND holding the phone must NOT be visible in the image. 
+    The arm extends toward camera but is outside the frame.
+
+    Rules:
+    1. Start your prompt with "selfie photo, "
+    2. Include selfie-specific details: framing (close-up, waist-up, etc.), 
+       expression, lighting on face, background from their perspective
+    3. Use conversation context to infer the current scene and why a selfie fits
+    4. {style_instruction}
+    5. DO NOT include phone, cellphone, hand, or holding phone in the prompt
+    6. Pay close attention to scene elements mentioned in conversation (e.g., eating ice cream, reading a book)
+    7. Keep under 200 characters
+    8. Output ONLY the prompt text, no explanations
+
+  context_sections:
+    conversation: "Recent conversation context (infer the scene and why the character would take a selfie, note scene elements):\n{content}"
+    time: "Current time context (adjust lighting and mood accordingly): {content}"
+    user_scene: "User requested scene: {content}"
+    final_instruction: "\nGenerate the selfie prompt now. Output ONLY the prompt text."
+
+# ─── 风格映射表 ──────────────────────────────────────
+style_map:
+  auto: "Strictly follow the art style of the reference image, replicate the style exactly, same art style as reference, selfie composition front-facing"
+  anime: "Style: anime, 2D illustration, cel-shaded, Japanese animation style, selfie composition"
+  realistic: "Style: photographic selfie, ultra-realistic, photorealistic, front-facing camera"
+  semi-realistic: "Style: semi-realistic, painterly, soft brush strokes, anime-inspired portrait, selfie"
+
+# ─── 质量标签 ────────────────────────────────────────
+quality_tags:
+  positive:
+    - masterpiece
+    - best quality
+    - ultra-detailed
+    - intricate details
+    - detailed face
+    - detailed eyes
+    - natural skin texture
+    - sharp focus
+    - style consistent with reference image
+    - match reference art style exactly
+  
+  negative:
+    - no phone
+    - no cellphone
+    - no hand holding phone
+    - no smartphone
+    - no camera visible
+    - hands outside frame
+
+# ─── 场景元素关键词库 ────────────────────────────────
+scene_elements:
+  activities:
+    - eating
+    - drinking
+    - reading
+    - cooking
+    - working
+    - studying
+    - playing
+    - dancing
+    - singing
+    - walking
+    - sitting
+    - standing
+    - lying down
+    - running
+    - laughing
+    - smiling
+    - thinking
+    - talking
+    - listening
+    - watching
+    - writing
+    - drawing
+    - painting
+    - gaming
+    - relaxing
+    - resting
+    - sleeping
+  
+  objects:
+    - ice cream
+    - coffee
+    - tea
+    - book
+    - laptop
+    - phone
+    - flower
+    - cake
+    - food
+    - drink
+    - camera
+    - mirror
+    - window
+    - chair
+    - table
+    - bed
+    - pillow
+    - blanket
+    - plant
+    - pet
+    - cat
+    - dog
+  
+  locations:
+    - home
+    - bedroom
+    - kitchen
+    - living room
+    - bathroom
+    - office
+    - cafe
+    - restaurant
+    - park
+    - beach
+    - street
+    - school
+    - library
+    - mall
+    - store
+    - gym
+    - studio
+    - garden
+    - balcony
+    - rooftop
+    - car
+    - train
+    - bus
+  
+  time_of_day:
+    early_morning: "early morning, sunrise, dawn light"
+    morning: "morning, bright daylight"
+    noon: "noon, midday, bright sun"
+    afternoon: "afternoon, warm sunlight"
+    evening: "evening, sunset, golden hour"
+    night: "night, evening lights, indoor warm lighting"
+    late_night: "late night, dim lighting, cozy indoor"
