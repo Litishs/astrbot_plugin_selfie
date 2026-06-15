@@ -4,6 +4,8 @@ import re
 import uuid
 import base64
 import asyncio
+import time
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -87,21 +89,34 @@ class SelfiePlugin(Star):
 
     async def _do_selfie(self, event: AstrMessageEvent, scene_desc: Optional[str]):
         """核心流程：获取上下文 → 人格卡 → LLM 生成 <形容> → 图片 API → 发送。"""
+        start_time = time.time()
+        llm_time = 0.0
+        image_time = 0.0
+
         # 并行获取独立数据
         context_text, personality_prompt = await asyncio.gather(
             self._get_context(event),
             self._get_personality_prompt(event),
         )
 
+        llm_start = time.time()
         prompt = await self._build_prompt(event, context_text, scene_desc, personality_prompt)
+        llm_time = time.time() - llm_start
+        
         if not prompt:
             yield event.plain_result("🤔 构思画面时卡壳了，再跟我说句话试试~")
             return
 
         logger.info(f"selfie prompt: {prompt}")
 
+        image_start = time.time()
         image_result = await self._call_image_api(prompt)
+        image_time = time.time() - image_start
+        
+        total_time = time.time() - start_time
+
         if not image_result:
+            logger.info(f"生图失败 | 总耗时: {total_time:.2f}s (LLM: {llm_time:.2f}s, 图片API: {image_time:.2f}s)")
             yield event.plain_result(
                 "😅 拍照时出了点问题，请检查：\n"
                 "1. 插件配置中是否选择了正确的图片生成模型\n"
@@ -110,6 +125,7 @@ class SelfiePlugin(Star):
             )
             return
 
+        logger.info(f"生图完成 | 总耗时: {total_time:.2f}s (LLM: {llm_time:.2f}s, 图片API: {image_time:.2f}s)")
         yield event.image_result(image_result)
 
     # ─── 对话上下文获取 ───────────────────────────────────
@@ -186,6 +202,26 @@ class SelfiePlugin(Star):
 
         return ""
 
+    def _get_time_description(self) -> str:
+        """获取当前现实时间的描述，用于生成符合时间场景的自拍。"""
+        now = datetime.now()
+        hour = now.hour
+        
+        if 5 <= hour < 8:
+            return "early morning, sunrise, dawn light"
+        elif 8 <= hour < 12:
+            return "morning, bright daylight"
+        elif 12 <= hour < 14:
+            return "noon, midday, bright sun"
+        elif 14 <= hour < 17:
+            return "afternoon, warm sunlight"
+        elif 17 <= hour < 19:
+            return "evening, sunset, golden hour"
+        elif 19 <= hour < 22:
+            return "night, evening lights, indoor warm lighting"
+        else:  # 22 - 5
+            return "late night, dim lighting, cozy indoor"
+
     # ─── LLM 生成绘图 Prompt ──────────────────────────────
 
     async def _build_prompt(
@@ -257,6 +293,10 @@ class SelfiePlugin(Star):
             parts.append(f"=== Character Personality Card (embody this character) ===\n{personality_prompt}")
             if context:
                 parts.append(f"=== Conversation Context (infer why the character takes this selfie right now) ===\n{context[:600]}")
+            # 添加现实时间信息（如果开启）
+            if self.config.get("use_real_time", False):
+                time_desc = self._get_time_description()
+                parts.append(f"=== Current Time Context ===\n{time_desc}")
             if user_scene:
                 parts.append(f"=== User Requested Scene ===\n{user_scene}")
             parts.append("\nNow think as the character. Output the six slot lines for their selfie.")
@@ -351,6 +391,10 @@ class SelfiePlugin(Star):
         parts = []
         if context:
             parts.append(f"Recent conversation context (infer the scene and why the character would take a selfie):\n{context[:600]}")
+        # 添加现实时间信息（如果开启）
+        if self.config.get("use_real_time", False):
+            time_desc = self._get_time_description()
+            parts.append(f"Current time context (adjust lighting and mood accordingly): {time_desc}")
         if user_scene:
             parts.append(f"User requested scene: {user_scene}")
         parts.append("\nGenerate the selfie prompt now. Output ONLY the prompt text.")

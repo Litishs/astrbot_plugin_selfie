@@ -60,6 +60,12 @@
     "default": true,
     "hint": "开启后，LLM 会读取 AstrBot 中配置的角色人格卡来理解角色性格，生成更贴合角色设定的自拍描述。"
   },
+  "use_real_time": {
+    "description": "参考现实时间",
+    "type": "bool",
+    "default": false,
+    "hint": "开启后，LLM 会根据当前真实时间（早晨、中午、晚上、深夜等）来生成符合时间场景的自拍描述，使图片更具真实感。"
+  },
   "trigger_keywords": {
     "type": "text",
     "description": "触发关键词，每行一个",
