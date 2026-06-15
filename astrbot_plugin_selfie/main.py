@@ -225,26 +225,29 @@ class SelfiePlugin(Star):
                 "A selfie is a photo the character takes of THEMSELVES with their phone/camera. "
                 "The camera is in THEIR hand — not a third-party photographer. "
                 "The image must feel like the character's own selfie: they see their own face, "
-                "their own arm extending the phone, their own environment behind them.\n\n"
+                "their own arm extending the phone OUTSIDE the frame, their own environment behind them.\n\n"
+                "CRITICAL RULE: The PHONE and HAND holding the phone must NOT be visible in the selfie photo. "
+                "The arm extends toward the camera but the phone itself is outside the frame.\n\n"
                 "Generate a selfie description by filling each slot below with 2-6 English words, "
                 "one slot per line. Use EXACTLY this format:\n\n"
                 "expression:\npose:\nbackground:\nlighting:\nmood:\nframing:\n\n"
                 "Rules:\n"
-                "- CRITICAL: This is a FIRST-PERSON SELFIE. The character holds the phone. "
+                "- CRITICAL: This is a FIRST-PERSON SELFIE. The character holds the phone OUTSIDE FRAME. "
                 "Describe the scene AS THE CHARACTER EXPERIENCES IT.\n"
                 "- Do NOT describe the character's appearance or clothes (the reference image handles that).\n"
+                "- Do NOT mention phone, cellphone, or hand in any slot - the phone is outside the frame.\n"
                 "- Use conversation context to infer current scene, mood, and why they'd take a selfie right now.\n"
                 "- 'expression' = the character's own facial expression (e.g., gentle smile, playful wink, pensive look)\n"
-                "- 'pose' = how the character holds the phone and angles their body for the selfie "
-                "(e.g., phone held slightly above, arm extended, gentle head tilt toward camera)\n"
+                "- 'pose' = how the character angles their body for the selfie (arm extends toward camera but outside frame) "
+                "(e.g., arm extended out of frame, gentle head tilt toward camera, looking at camera with smile)\n"
                 "- 'background' = what's visible behind the character in the selfie frame "
                 "(e.g., cozy sunlit bedroom, bustling street cafe, messy desk with warm lamp)\n"
                 "- 'lighting' = light source as experienced by the character "
                 "(e.g., warm sunset glow on face from window, soft neon signs casting purple hue)\n"
                 "- 'mood' = the emotional atmosphere of this selfie moment "
                 "(e.g., quiet contentment, playful excitement, tender nostalgia)\n"
-                "- 'framing' = the selfie composition "
-                "(e.g., close-up face and shoulders, waist-up casual shot, mirror selfie full body)\n"
+                "- 'framing' = the selfie composition (phone/hand NOT visible) "
+                "(e.g., close-up face and shoulders, waist-up casual shot, portrait orientation selfie)\n"
                 "- Each slot exactly 2-6 words (short, vivid).\n"
                 "- Output ONLY the six slot lines in order, no extra text, no markdown."
             )
@@ -300,11 +303,13 @@ class SelfiePlugin(Star):
                     parts_list.append(slots["mood"])
                 prompt = ", ".join(parts_list)
 
-            # 追加质量标签
+            # 追加质量标签和负面提示词
             quality_tags = (
                 "masterpiece, best quality, ultra-detailed, "
                 "intricate details, detailed face, detailed eyes, "
-                "natural skin texture, sharp focus"
+                "natural skin texture, sharp focus, "
+                "no phone, no cellphone, no hand holding phone, "
+                "no smartphone, no camera visible, hands outside frame"
             )
             prompt += ", " + quality_tags
 
@@ -316,10 +321,10 @@ class SelfiePlugin(Star):
 
         # ── 自由模式（无角色人格卡） ────────────────────────
         style_map = {
-            "auto": "Selfie composition: front-facing, natural and candid feel",
-            "anime": "Style: anime, 2D illustration, selfie composition",
-            "realistic": "Style: photographic selfie, realistic, front-facing camera",
-            "semi-realistic": "Style: semi-realistic, painterly, selfie portrait",
+            "auto": "Selfie composition: front-facing, natural and candid feel, match style to reference image",
+            "anime": "Style: anime, 2D illustration, cel-shaded, selfie composition",
+            "realistic": "Style: photographic selfie, ultra-realistic, front-facing camera",
+            "semi-realistic": "Style: semi-realistic, painterly, soft brush strokes, selfie portrait",
         }
         style_key = self.config.get("output_style", "auto")
         style_instruction = style_map.get(style_key, style_map["auto"])
@@ -328,15 +333,17 @@ class SelfiePlugin(Star):
             "You are a professional AI image prompt engineer specializing in SELFIE photos.\n\n"
             "A selfie means the character is holding their phone and taking a picture of THEMSELVES. "
             "The camera is in the character's hand — NOT a third-party observer. "
-            "Describe the scene from the character's own selfie perspective.\n\n"
+            "The PHONE and HAND holding the phone must NOT be visible in the image. "
+            "The arm extends toward camera but is outside the frame.\n\n"
             "Rules:\n"
             "1. Start your prompt with \"selfie photo, \"\n"
             "2. Include selfie-specific details: framing (close-up, waist-up, etc.), "
             "expression, lighting on face, background from their perspective\n"
             "3. Use conversation context to infer the current scene and why a selfie fits\n"
             f"4. {style_instruction}\n"
-            "5. Keep under 200 characters\n"
-            "6. Output ONLY the prompt text, no explanations"
+            "5. DO NOT include phone, cellphone, hand, or holding phone in the prompt\n"
+            "6. Keep under 200 characters\n"
+            "7. Output ONLY the prompt text, no explanations"
         )
 
         parts = []
@@ -356,6 +363,10 @@ class SelfiePlugin(Star):
             if text:
                 if not text.lower().startswith("selfie"):
                     text = "selfie photo, " + text
+                # 添加质量标签和负面提示词
+                text += ", masterpiece, best quality, ultra-detailed, detailed face, detailed eyes, "
+                text += "natural skin texture, sharp focus, no phone, no cellphone, no hand holding phone, "
+                text += "no smartphone, no camera visible, hands outside frame"
                 return text
         except Exception as e:
             logger.error(f"LLM prompt 生成失败：{e}")
