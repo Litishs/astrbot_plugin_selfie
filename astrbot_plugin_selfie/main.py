@@ -482,8 +482,8 @@ class SelfiePlugin(Star):
                 "auto": "style consistent with reference image, match reference art style exactly",
                 "anime": "anime style, 2D illustration, cel-shaded, Japanese animation style, selfie composition",
                 "realistic": "photographic, photorealistic, ultra-realistic, front-facing camera",
-                "3d-anime": "3D animation style, CG anime, smooth volumetric lighting, "
-                           "soft shading, game character render, three-dimensional",
+                "3d-anime": "3D animation style, CGI render, smooth plastic shading, "
+                           "subsurface scattering, volumetric lighting, three-dimensional",
             }
             style_key = self.config.get("output_style", "auto")
             style_tag = style_tag_map.get(style_key, style_tag_map["auto"])
@@ -507,8 +507,8 @@ class SelfiePlugin(Star):
             "auto": "Strictly follow the art style of the reference image, replicate the style exactly, same art style as reference, selfie composition front-facing",
             "anime": "Style: anime, 2D illustration, cel-shaded, Japanese animation style, selfie composition",
             "realistic": "Style: photographic selfie, ultra-realistic, photorealistic, front-facing camera",
-            "3d-anime": "Style: 3D anime game render, CG character art, smooth volumetric lighting, "
-                       "three-dimensional, soft cel-shading, selfie composition",
+            "3d-anime": "Style: 3D CGI animation, Pixar style, smooth plastic shading, "
+                       "subsurface scattering, volumetric lighting, three-dimensional, selfie composition",
         }
         style_key = self.config.get("output_style", "auto")
         style_instruction = style_map.get(style_key, style_map["auto"])
