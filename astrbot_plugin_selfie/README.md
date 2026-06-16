@@ -2,6 +2,8 @@
 
 **astrbot_plugin_selfie** — 让 AstrBot 中的角色能根据聊天氛围和角色设定，生成符合角色长相的自拍照。
 
+> 📖 **更新日志**：查看 [CHANGELOG.md](CHANGELOG.md) 了解版本历史。
+
 ## ✨ 功能特点
 
 - **📸 自拍生成** — 输入「我想看看你」「发张自拍」等自然语言，或使用 `/selfie` 指令，bot 会根据当前聊天氛围生成一张自拍照。
@@ -166,10 +168,26 @@ bot: [图片]
 
 | 风格 | 说明 |
 |------|------|
-| `auto`（推荐） | 跟随参考图风格，由图像模型自行决定 |
-| `anime` | 二次元动漫风格 |
-| `realistic` | 写实照片风格 |
-| `semi-realistic` | 半写实/插画风格 |
+| `auto`（推荐） | 自拍构图，自然抓拍感，由图像模型自行决定画风 |
+| `anime` | 二次元动漫风格自拍 |
+| `realistic` | 写实照片风格自拍 |
+| `semi-realistic` | 半写实/插画风格自拍 |
+
+### 自拍沉浸感优化
+
+v1.1.0 引入了**第一人称自拍视角的 prompt 工程**，核心改进：
+
+- **结构化模式（有角色人格卡）**：LLM 按 6 个槽位填写自拍描述：
+  - `expression` — 角色面部表情（如：温柔微笑、俏皮眨眼）
+  - `pose` — 举手机的角度和姿态（如：手机举高、歪头看镜头）
+  - `background` — 自拍背景（如：阳光透过窗帘的卧室）
+  - `lighting` — 光线打在脸上的感觉（如：日落暖光照在脸上）
+  - `mood` — 此刻自拍的情绪氛围（如：安静的满足感）
+  - `framing` — 自拍构图（如：近景脸和肩膀、半身照）
+- **自由模式（无角色人格卡）**：LLM 被告知 "camera is in the character's hand — NOT a third-party observer"，强制以第一人称描述场景。
+- **质量标签**：追加 `intricate details`, `natural skin texture`, `sharp focus` 等细节标签，提升成片质量。
+
+> 所有优化均在 system prompt 层面实现，**不依赖特定模型**，切换 LLM 或图像模型也能生效。
 
 ## ⚙️ 配置说明
 
@@ -241,6 +259,7 @@ astrbot_plugin_selfie/
 ├── _conf_schema.json       # 插件配置项定义（WebUI 配置面板）
 ├── metadata.yaml           # 插件元数据（名称、版本、作者等）
 ├── requirements.txt        # Python 依赖
+├── CHANGELOG.md            # 版本更新日志
 ├── data/
 │   ├── README.txt          # 三视图使用说明
 │   └── reference.png       # ← 三视图合成图（用户放置）

@@ -2,6 +2,33 @@
 
 All notable changes to the `astrbot_plugin_selfie` project will be documented in this file.
 
+## [1.2.0] - 2026-06-15
+
+### Added
+
+- **提示词模板外置化**：System Prompt 移至 `templates/` 目录，用户可直接编辑模板文件来定制 LLM 行为，无需修改代码
+  - `templates/structured_system.txt` — 角色人格卡模式（结构化槽位填充）
+  - `templates/free_system.txt` — 通用模式（自由输出），支持 `{style_instruction}` 占位符
+- **场景元素自动提取**（`_extract_scene_elements`）：独立 LLM 调用从对话上下文中识别物理动作/物品
+  - 例如用户提到"在吃冰淇淋" → 提取为 `eating ice cream` → 显式注入到 prompt 生成中
+  - 只在有相关场景元素时才触发，无场景时跳过（无额外开销）
+- **双模式 prompt 增强**：结构化模式和自由模式均新增场景元素注入点，确保场景动作出现在最终图片中
+
+### Changed
+
+- `_build_prompt()` 新增 `scene_elements` 参数，支持显式场景元素注入
+- `_do_selfie()` 流水线增加场景提取步骤（在上下文获取之后、prompt 生成之前）
+- System Prompt 新增规则：要求 LLM 将对话中提到的场景动作/物品纳入 slots 描述
+- 预定义类级别常量 `_DEFAULT_STRUCTURED_SYSTEM` 和 `_DEFAULT_FREE_SYSTEM`，作为模板文件缺失时的回退
+- 模板系统默认启用：插件启动时 `templates/` 自动创建，缺失时使用内置默认（零破坏性）
+
+### Technical Details
+
+- 模板使用 `.txt` 纯文本格式，`{style_instruction}` 占位符由代码自动替换
+- 场景提取 LLM 调用极其轻量（max 12 words 输出），token 消耗极低（约 100-200 token/次）
+- 模板修改后需重启/重载插件生效（一次加载、运行时不变）
+- 完全向后兼容：无新配置项，已有设置无需修改
+
 ## [1.1.0] - 2026-06-11
 
 ### Added
