@@ -12,7 +12,8 @@
 - **🔌 多模型支持** — 兼容 OpenAI 标准格式（SiliconFlow、智谱 CogView 等）和自定义 API（通义万相等）。
 - **🔗 AstrBot 深度集成** — 直接读取 AstrBot Provider 系统的 API Key 和模型配置，无需额外填写密钥。
 - **🌐 多平台** — 支持 aiocqhttp、Telegram、QQ 官方等平台。
-- **🎭 第一人称自拍沉浸感** — 通过强化 prompt 工程，LLM 会以角色的第一人称视角生成自拍描述（而非第三人称旁观者视角），让成片更像是角色自己在举手机自拍。
+- **📝 提示词模板可编辑** — LLM 提示词模板外置到 `templates/` 目录，用户可直接编辑模板文件调整 LLM 行为（如改写结构化槽位规则、调整场景提取策略），无需修改代码。
+- **🎯 场景元素自动识别** — 插件从对话上下文中自动识别角色当前的动作/物品（如"吃冰淇淋"、"看书"），显式注入到自拍描述中，让画面更贴合聊天气氛。
 
 ## 📋 目录
 
@@ -200,7 +201,7 @@ v1.1.0 引入了**第一人称自拍视角的 prompt 工程**，核心改进：
 | `custom_request_template` | text | (通义万相模板) | 自定义请求体 JSON 模板，支持 `{{prompt}}` 和 `{{reference_base64}}` 占位符 |
 | `custom_response_path` | string | `output.choices[0].message.content[0].image` | 从 API 响应提取图片的 JSON 路径 |
 | `image_size` | string | `1024x1024` | 仅 openai 模式有效 |
-| `output_style` | string | `auto` | 输出风格：auto / anime / realistic / semi-realistic |
+| `output_style` | string | `auto` | 输出风格：auto / anime / realistic / 3d-anime（3D动画渲染风格） |
 | `use_persona` | bool | `true` | 是否读取 AstrBot 角色人格卡 |
 | `trigger_keywords` | text | (见上方) | 自然语言触发关键词，每行一个 |
 

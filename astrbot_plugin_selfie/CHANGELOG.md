@@ -2,6 +2,27 @@
 
 All notable changes to the `astrbot_plugin_selfie` project will be documented in this file.
 
+## [1.3.0] - 2026-06-17
+
+### Added
+
+- **输出风格真正生效**：结构化模式（有角色人格卡时）现在也会读取 `output_style` 配置，按 auto/anime/realistic/3d-anime 分别注入对应风格标签到 prompt 中
+- **3D动画风格**：原 `semi-realistic` 替换为 `3d-anime`，3D CGI 动画渲染质感（皮克斯风格），区别于二次元平涂和写实照片
+- **英文输出强约束**：system prompt 末尾增加 "All slot values MUST be in English only"，确保 LLM 输出稳定为英文
+- **第一人称视角锚定**：prompt 组装后追加 `first-person selfie view, arm extending toward camera outside frame`，防止图像模型漂移到第三人称视角
+
+### Changed
+
+- `semi-realistic` → `3d-anime`：配置选项值、结构化 prompt 标签、自由模式 prompt 全面替换
+- 场景元素注入从 "MUST appear" 改为柔和 "Context Note"，解除与自拍规则（禁止手机/手出现）的冲突
+- 移除结构化模式的重复 prompt 日志（调用方 `_do_selfie` 已打印一次）
+
+### Fixed
+
+- 修复场景元素（如 `burrying face in phone`）与 "no phone" 自拍规则冲突导致的画面崩坏
+- 修复因 LLM 输出中文导致绘图模型对动作/姿态理解不稳定的问题
+- 修复 `output_style` 配置在结构化模式中被完全忽略的 bug
+
 ## [1.2.0] - 2026-06-15
 
 ### Added
