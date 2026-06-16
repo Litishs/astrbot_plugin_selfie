@@ -477,18 +477,25 @@ class SelfiePlugin(Star):
                 # 追加第一人称视角锚定，防止图像模型漂移到第三人称视角
                 prompt += ", first-person selfie view, arm extending toward camera outside frame"
 
-            # 追加质量标签和负面提示词
+            # 根据 output_style 确定风格标签（auto=参考图风格一致，realistic=写实风...）
+            style_tag_map = {
+                "auto": "style consistent with reference image, match reference art style exactly",
+                "anime": "anime style, 2D illustration, cel-shaded, Japanese animation style, selfie composition",
+                "realistic": "photographic, photorealistic, ultra-realistic, front-facing camera",
+                "semi-realistic": "semi-realistic, painterly, soft brush strokes, anime-inspired portrait",
+            }
+            style_key = self.config.get("output_style", "auto")
+            style_tag = style_tag_map.get(style_key, style_tag_map["auto"])
+
             quality_tags = (
                 "masterpiece, best quality, ultra-detailed, "
                 "intricate details, detailed face, detailed eyes, "
                 "natural skin texture, sharp focus, "
-                "style consistent with reference image, match reference art style exactly, "
+                f"{style_tag}, "
                 "no phone, no cellphone, no hand holding phone, "
                 "no smartphone, no camera visible, hands outside frame"
             )
             prompt += ", " + quality_tags
-
-            logger.info(f"结构化模式生成的 prompt: {prompt}")
 
             if prompt:
                 return prompt
