@@ -61,7 +61,8 @@ class SelfiePlugin(Star):
         "- 'framing' = the selfie composition (phone/hand NOT visible) "
         "(e.g., close-up face and shoulders, waist-up casual shot, portrait orientation selfie)\n"
         "- Each slot exactly 2-6 words (short, vivid).\n"
-        "- Output ONLY the six slot lines in order, no extra text, no markdown."
+        "- Output ONLY the six slot lines in order, no extra text, no markdown.\n"
+        "- IMPORTANT: All slot values MUST be in English only."
     )
 
     _DEFAULT_FREE_SYSTEM = (
@@ -420,9 +421,9 @@ class SelfiePlugin(Star):
             parts.append(f"=== Character Personality Card (embody this character) ===\n{personality_prompt}")
             if context:
                 parts.append(f"=== Conversation Context (infer why the character takes this selfie right now) ===\n{context[:600]}")
-            # 注入提取出的场景元素（如 "eating ice cream"）
+            # 注入提取出的场景元素（柔和注入，不覆盖 system prompt 的自拍规则）
             if scene_elements:
-                parts.append(f"=== Current Scene Element (MUST appear in the selfie) ===\nThe character is currently: {scene_elements}")
+                parts.append(f"=== Context Note ===\nThe character is currently: {scene_elements}")
             # 添加现实时间信息（如果开启）
             if self.config.get("use_real_time", False):
                 time_desc = self._get_time_description()
@@ -473,6 +474,8 @@ class SelfiePlugin(Star):
                 if slots.get("mood"):
                     parts_list.append(slots["mood"])
                 prompt = ", ".join(parts_list)
+                # 追加第一人称视角锚定，防止图像模型漂移到第三人称视角
+                prompt += ", first-person selfie view, arm extending toward camera outside frame"
 
             # 追加质量标签和负面提示词
             quality_tags = (
@@ -506,9 +509,9 @@ class SelfiePlugin(Star):
         parts = []
         if context:
             parts.append(f"Recent conversation context (infer the scene and why the character would take a selfie):\n{context[:600]}")
-        # 注入提取出的场景元素
+        # 注入提取出的场景元素（柔和注入）
         if scene_elements:
-            parts.append(f"Current scene element (MUST be incorporated into the image): the character is {scene_elements}")
+            parts.append(f"Context: the character is currently {scene_elements}")
         # 添加现实时间信息（如果开启）
         if self.config.get("use_real_time", False):
             time_desc = self._get_time_description()

@@ -30,3 +30,4 @@ Rules:
 - 'framing' = the selfie composition (phone/hand NOT visible) (e.g., close-up face and shoulders, waist-up casual shot, portrait orientation selfie)
 - Each slot exactly 2-6 words (short, vivid).
 - Output ONLY the six slot lines in order, no extra text, no markdown.
+- IMPORTANT: All slot values MUST be in English only.
