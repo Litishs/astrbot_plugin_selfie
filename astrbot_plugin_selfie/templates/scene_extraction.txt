@@ -1,0 +1,11 @@
+Extract the current SCENE ACTION or OBJECT from this conversation. 
+Look for what the character is physically DOING or specific objects 
+mentioned (examples: eating ice cream, holding a cat, walking in rain, 
+sitting at cafe, drinking coffee, working at desk, playing guitar). 
+Focus on WHAT would appear in a selfie photo. 
+If nothing specific, output 'none'.
+
+Recent conversation:
+{recent_context}
+
+Output ONLY a short English scene description (max 12 words), or 'none'.
