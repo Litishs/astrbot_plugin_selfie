@@ -172,21 +172,36 @@ bot: [图片]
 | `auto`（推荐） | 自拍构图，自然抓拍感，由图像模型自行决定画风 |
 | `anime` | 二次元动漫风格自拍 |
 | `realistic` | 写实照片风格自拍 |
-| `semi-realistic` | 半写实/插画风格自拍 |
+| `3d-anime` | 3D CGI 动画渲染风格（皮克斯风格），区别于二次元平涂和写实照片 |
 
-### 自拍沉浸感优化
+### 自拍提示词逻辑
 
-v1.1.0 引入了**第一人称自拍视角的 prompt 工程**，核心改进：
+**v1.2.0 / v1.3.0** 引入以下核心改进：
 
-- **结构化模式（有角色人格卡）**：LLM 按 6 个槽位填写自拍描述：
-  - `expression` — 角色面部表情（如：温柔微笑、俏皮眨眼）
-  - `pose` — 举手机的角度和姿态（如：手机举高、歪头看镜头）
-  - `background` — 自拍背景（如：阳光透过窗帘的卧室）
-  - `lighting` — 光线打在脸上的感觉（如：日落暖光照在脸上）
-  - `mood` — 此刻自拍的情绪氛围（如：安静的满足感）
-  - `framing` — 自拍构图（如：近景脸和肩膀、半身照）
-- **自由模式（无角色人格卡）**：LLM 被告知 "camera is in the character's hand — NOT a third-party observer"，强制以第一人称描述场景。
-- **质量标签**：追加 `intricate details`, `natural skin texture`, `sharp focus` 等细节标签，提升成片质量。
+- **提示词模板外置化**：LLM 提示词移至 `templates/` 目录，用户可直接编辑模板文件定制 LLM 行为
+- **场景元素自动提取**：从对话上下文中识别场景动作/物品，注入到 prompt 中
+- **输出风格配置生效**：结构化模式也会读取 `output_style`，选择 realistic / anime / 3d-anime 时注入对应风格标签
+- **英文输出强约束**：system prompt 要求所有值用英文输出，绘图模型理解更稳定
+- **第一人称视角锚定**：prompt 末尾追加视角描述，防止图像模型漂移到第三人称
+
+**结构化模式（有角色人格卡）流程：**
+
+1. 读取 `templates/structured_system.txt` 模板
+2. LLM 按 6 个槽位填写自拍描述：
+   - `expression` — 角色面部表情（如：shy smile with flushed cheeks）
+   - `pose` — 举手机的角度/姿态（如：slight head tilt toward camera）
+   - `background` — 自拍背景（如：cozy dim bedroom with crumpled blankets）
+   - `lighting` — 光线打在脸上的感觉（如：warm amber lamplight on face）
+   - `mood` — 此刻自拍的情绪氛围（如：sweet bashful affection）
+   - `framing` — 自拍构图（如：close-up face and shoulders selfie）
+3. 组装为英文 prompt：`selfie photo, [framing], [expression], [pose], ... + quality_tags + style_tags（根据 output_style）`
+4. 追加视角锚定 + 质量标签 + 风格标签 → 发送给图像模型
+
+**自由模式（无角色人格卡）：**
+
+- 读取 `templates/free_system.txt` 模板
+- LLM 被告知 "camera is in the character's hand — NOT a third-party observer"
+- 强制以第一人称描述场景
 
 > 所有优化均在 system prompt 层面实现，**不依赖特定模型**，切换 LLM 或图像模型也能生效。
 
@@ -261,6 +276,10 @@ astrbot_plugin_selfie/
 ├── metadata.yaml           # 插件元数据（名称、版本、作者等）
 ├── requirements.txt        # Python 依赖
 ├── CHANGELOG.md            # 版本更新日志
+├── templates/              # LLM 提示词模板（用户可直接编辑）
+│   ├── structured_system.txt  # 结构化模式（有角色人格卡时使用）
+│   ├── free_system.txt        # 自由模式（无角色人格卡时使用）
+│   └── scene_extraction.txt   # 场景元素提取（从对话中提取动作/物品）
 ├── data/
 │   ├── README.txt          # 三视图使用说明
 │   └── reference.png       # ← 三视图合成图（用户放置）
