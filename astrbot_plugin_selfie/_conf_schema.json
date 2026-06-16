@@ -51,8 +51,8 @@
     "description": "输出风格",
     "type": "string",
     "default": "auto",
-    "options": ["auto", "anime", "realistic", "semi-realistic"],
-    "hint": "auto: 跟随参考图风格（推荐）；anime: 二次元；realistic: 写实；semi-realistic: 半写实"
+    "options": ["auto", "anime", "realistic", "3d-anime"],
+    "hint": "auto: 跟随参考图风格（推荐）；anime: 二次元；realistic: 写实；3d-anime: 3D动画风格（如原神等3D二次元游戏渲染质感）"
   },
   "use_persona": {
     "description": "参考角色人格卡",
