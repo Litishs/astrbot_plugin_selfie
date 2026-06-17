@@ -2,6 +2,8 @@
 
 **astrbot_plugin_selfie** — 让 AstrBot 中的角色能根据聊天氛围和角色设定，生成符合角色长相的自拍照。
 
+> 📖 **更新日志**：查看 [CHANGELOG.md](CHANGELOG.md) 了解版本历史。
+
 ## ✨ 功能特点
 
 - **📸 自拍生成** — 输入「我想看看你」「发张自拍」等自然语言，或使用 `/selfie` 指令，bot 会根据当前聊天氛围生成一张自拍照。
@@ -10,6 +12,8 @@
 - **🔌 多模型支持** — 兼容 OpenAI 标准格式（SiliconFlow、智谱 CogView 等）和自定义 API（通义万相等）。
 - **🔗 AstrBot 深度集成** — 直接读取 AstrBot Provider 系统的 API Key 和模型配置，无需额外填写密钥。
 - **🌐 多平台** — 支持 aiocqhttp、Telegram、QQ 官方等平台。
+- **📝 提示词模板可编辑** — LLM 提示词模板外置到 `templates/` 目录，用户可直接编辑模板文件调整 LLM 行为（如改写结构化槽位规则、调整场景提取策略），无需修改代码。
+- **🎯 场景元素自动识别** — 插件从对话上下文中自动识别角色当前的动作/物品（如"吃冰淇淋"、"看书"），显式注入到自拍描述中，让画面更贴合聊天气氛。
 
 ## 📋 目录
 
@@ -165,10 +169,41 @@ bot: [图片]
 
 | 风格 | 说明 |
 |------|------|
-| `auto`（推荐） | 跟随参考图风格，由图像模型自行决定 |
-| `anime` | 二次元动漫风格 |
-| `realistic` | 写实照片风格 |
-| `semi-realistic` | 半写实/插画风格 |
+| `auto`（推荐） | 自拍构图，自然抓拍感，由图像模型自行决定画风 |
+| `anime` | 二次元动漫风格自拍 |
+| `realistic` | 写实照片风格自拍 |
+| `3d-anime` | 3D CGI 动画渲染风格（皮克斯风格），区别于二次元平涂和写实照片 |
+
+### 自拍提示词逻辑
+
+**v1.2.0 / v1.3.0** 引入以下核心改进：
+
+- **提示词模板外置化**：LLM 提示词移至 `templates/` 目录，用户可直接编辑模板文件定制 LLM 行为
+- **场景元素自动提取**：从对话上下文中识别场景动作/物品，注入到 prompt 中
+- **输出风格配置生效**：结构化模式也会读取 `output_style`，选择 realistic / anime / 3d-anime 时注入对应风格标签
+- **英文输出强约束**：system prompt 要求所有值用英文输出，绘图模型理解更稳定
+- **第一人称视角锚定**：prompt 末尾追加视角描述，防止图像模型漂移到第三人称
+
+**结构化模式（有角色人格卡）流程：**
+
+1. 读取 `templates/structured_system.txt` 模板
+2. LLM 按 6 个槽位填写自拍描述：
+   - `expression` — 角色面部表情（如：shy smile with flushed cheeks）
+   - `pose` — 举手机的角度/姿态（如：slight head tilt toward camera）
+   - `background` — 自拍背景（如：cozy dim bedroom with crumpled blankets）
+   - `lighting` — 光线打在脸上的感觉（如：warm amber lamplight on face）
+   - `mood` — 此刻自拍的情绪氛围（如：sweet bashful affection）
+   - `framing` — 自拍构图（如：close-up face and shoulders selfie）
+3. 组装为英文 prompt：`selfie photo, [framing], [expression], [pose], ... + quality_tags + style_tags（根据 output_style）`
+4. 追加视角锚定 + 质量标签 + 风格标签 → 发送给图像模型
+
+**自由模式（无角色人格卡）：**
+
+- 读取 `templates/free_system.txt` 模板
+- LLM 被告知 "camera is in the character's hand — NOT a third-party observer"
+- 强制以第一人称描述场景
+
+> 所有优化均在 system prompt 层面实现，**不依赖特定模型**，切换 LLM 或图像模型也能生效。
 
 ## ⚙️ 配置说明
 
@@ -181,7 +216,7 @@ bot: [图片]
 | `custom_request_template` | text | (通义万相模板) | 自定义请求体 JSON 模板，支持 `{{prompt}}` 和 `{{reference_base64}}` 占位符 |
 | `custom_response_path` | string | `output.choices[0].message.content[0].image` | 从 API 响应提取图片的 JSON 路径 |
 | `image_size` | string | `1024x1024` | 仅 openai 模式有效 |
-| `output_style` | string | `auto` | 输出风格：auto / anime / realistic / semi-realistic |
+| `output_style` | string | `auto` | 输出风格：auto / anime / realistic / 3d-anime（3D动画渲染风格） |
 | `use_persona` | bool | `true` | 是否读取 AstrBot 角色人格卡 |
 | `trigger_keywords` | text | (见上方) | 自然语言触发关键词，每行一个 |
 
@@ -240,6 +275,11 @@ astrbot_plugin_selfie/
 ├── _conf_schema.json       # 插件配置项定义（WebUI 配置面板）
 ├── metadata.yaml           # 插件元数据（名称、版本、作者等）
 ├── requirements.txt        # Python 依赖
+├── CHANGELOG.md            # 版本更新日志
+├── templates/              # LLM 提示词模板（用户可直接编辑）
+│   ├── structured_system.txt  # 结构化模式（有角色人格卡时使用）
+│   ├── free_system.txt        # 自由模式（无角色人格卡时使用）
+│   └── scene_extraction.txt   # 场景元素提取（从对话中提取动作/物品）
 ├── data/
 │   ├── README.txt          # 三视图使用说明
 │   └── reference.png       # ← 三视图合成图（用户放置）
